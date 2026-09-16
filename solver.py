@@ -1,4 +1,6 @@
-# Write your solution here
+# VALIDATORS
+# ---------------------------------------------------
+
 # checks if a row consist of unique numbers from 1 to 9
 def row_correct(board, row):
 	checked_list = []
@@ -13,20 +15,14 @@ def row_correct(board, row):
 
 # checks if a column only consist of numbers from 1 to 9 at most once
 def column_correct(board, col):
-	
-	checked_board = []
-
-	for rows in board:
-		i = 0
-		while i < 9:
-			if i != col or rows[i] == 0:
-				i += 1
-				continue
-			if rows[i] in checked_board:
-				return False
-			checked_board.append(rows[i])
-			i += 1
-	
+	checked_list = []
+	for row in board:
+		val = row[col]
+		if val == 0:
+			continue
+		if val in checked_list:
+			return False
+		checked_list.append(val)
 	return True
 
 # checks if a number already exist in the board passed
@@ -99,6 +95,74 @@ def sudoku_grid_correct(board):
 	return is_row_correct and is_col_correct and is_block_correct
 
 
+# SOLVER
+# ---------------------------------------------------
+
+# checks if placing num at board[row][col] is valid
+def can_place(board, row, col, num):
+	# check if num is already in the row
+	if num in board[row]:
+		return False
+
+	# check if num is already in the column
+	for r in range(9):
+		if board[r][col] == num:
+			return False
+
+	# check if num is already in the 3x3 block
+	block_row = (row // 3) * 3
+	block_col = (col // 3) * 3
+	for i in range(block_row, block_row + 3):
+		for j in range(block_col, block_col + 3):
+			if board[i][j] == num:
+				return False
+
+	return True
+
+
+# finds the next empty cell (value 0) on the board
+def find_empty(board):
+	for i in range(9):
+		for j in range(9):
+			if board[i][j] == 0:
+				return (i, j)
+	return None
+
+
+# solves the board using backtracking
+def solve(board):
+	#find an empty cell
+	empty = find_empty(board)
+
+	if empty is None:
+		return True
+
+	row, col = empty
+
+	# try numbers 1 to 9
+	for num in range(1, 10):
+		# check if the number can be placed here
+		if can_place(board, row, col, num):
+			# place the number
+			board[row][col] = num
+
+			# try to solve the rest of the board
+			if solve(board):
+				return True
+
+			# if it didn't work, undo and try the next number
+			board[row][col] = 0
+
+	# no number worked, need to backtrack
+	return False
+
+
+# prints the board in a readable format
+def print_board(board):
+	for i in range(9):
+		print(board[i])
+		# to be improved by Zanab
+
 
 if __name__ == "__main__":
 	sudoku1 = [
@@ -113,7 +177,7 @@ if __name__ == "__main__":
 	  [3, 0, 0, 0, 0, 0, 0, 0, 2]
 	]
 
-	print(sudoku_grid_correct(sudoku1))
+	print("Sudoku 1 valid:", sudoku_grid_correct(sudoku1))
 
 	sudoku2 = [
 	  [2, 6, 7, 8, 3, 9, 5, 0, 4],
@@ -127,17 +191,14 @@ if __name__ == "__main__":
 	  [7, 4, 5, 0, 0, 3, 9, 0, 1]
 	]
 
-	print(sudoku_grid_correct(sudoku2))
+	print("Sudoku 2 valid:", sudoku_grid_correct(sudoku2))
 
-	sudoku3 = [
-	  [ 6, 4, 9, 2, 8, 3, 1, 5, 7 ],
-	  [ 0, 5, 0, 6, 4, 9, 2, 3, 8 ],
-	  [ 2, 3, 8, 1, 5, 7, 6, 4, 9 ],
-	  [ 9, 2, 3, 8, 1, 5, 0, 6, 4 ],
-	  [ 7, 6, 4, 9, 2, 3, 8, 1, 5 ],
-	  [ 8, 1, 5, 7, 0, 4, 9, 2, 0 ],
-	  [ 5, 7, 6, 4, 9, 2, 3, 2, 1 ],
-	  [ 4, 0, 2, 3, 8, 1, 5, 0, 6 ],
-	  [ 3, 0, 1, 5, 0, 6, 4, 9, 0 ],
-	]
-	print(sudoku_grid_correct(sudoku3))
+	if sudoku_grid_correct(sudoku2):
+		print("\nSolving sudoku 2...")
+		if solve(sudoku2):
+			print("Solved!\n")
+			print_board(sudoku2)
+		else:
+			print("No solution exists.")
+	else:
+		print("Board is invalid, cannot solve.")
