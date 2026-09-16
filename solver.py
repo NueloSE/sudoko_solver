@@ -159,9 +159,15 @@ def solve(board):
 
 # prints the board in a readable format
 def print_board(board):
-	for i in range(9):
-		print(board[i])
-		# to be improved by Zanab
+    for row_index, row in enumerate(board):
+        for i in range(0, 9): 
+            print(row[i], end=' ')
+            if i == 2 or i == 5:
+                print("|", end=' ')
+        print()
+        if row_index == 2 or row_index == 5:
+            print("------+-------+-----")
+        
 
 
 if __name__ == "__main__":
