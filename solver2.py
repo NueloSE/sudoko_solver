@@ -1,64 +1,102 @@
 #!/usr/bin/env python3
 import sys
-from solver import find_errors, solve, print_board
+from solver import is_valid_board, solve, print_board
 
 
-def parse_board(text):
-	"""Parses a board string like '0 2 0 1 ..., 3 0 0 4 ..., ...' into a 2D list."""
-	rows = text.split(",")
+def read_board_from_file(filepath):
+    """Reads a sudoku board from a file.
 
-	if len(rows) != 9:
-		print(f"Error: Expected 9 rows but got {len(rows)}.")
-		return None
+    Expected file format: 9 lines, each with 9 digits.
+    Spaces and commas between digits are allowed.
+    Use 0 for empty cells.
 
-	board = []
-	for i, row_text in enumerate(rows):
-		parts = row_text.split()
+    Example file contents:
+        530070000
+        600195000
+        098000060
+        800060003
+        400803001
+        700020006
+        060000280
+        000419005
+        000080079
+    """
+    try:
+        with open(filepath, "r") as f:
+            lines = f.readlines()
+    except FileNotFoundError:
+        print(f"Error: File '{filepath}' not found.")
+        return None
 
-		if len(parts) != 9:
-			print(f"Error: Row {i + 1} has {len(parts)} numbers instead of 9.")
-			return None
+    # Remove empty lines and strip whitespace
+    lines = [line.strip() for line in lines if line.strip()]
 
-		row = []
-		for part in parts:
-			if not part.isdigit() or int(part) > 9:
-				print(f"Error: '{part}' in row {i + 1} is not a valid number (must be 0-9).")
-				return None
-			row.append(int(part))
+    if len(lines) != 9:
+        print(f"Error: Expected 9 rows in the file but found {len(lines)}.")
+        return None
 
-		board.append(row)
+    board = []
 
-	return board
+    for i, line in enumerate(lines):
+        # Remove spaces and commas so formats like "5 3 0 0 7 0 0 0 0" also work
+        digits = line.replace(" ", "").replace(",", "")
+
+        if len(digits) != 9:
+            print(f"Error: Row {i + 1} has {len(digits)} digits instead of 9.")
+            return None
+
+        if not digits.isdigit():
+            print(f"Error: Row {i + 1} contains non-digit characters.")
+            return None
+
+        board.append([int(d) for d in digits])
+
+    return board
 
 
 if __name__ == "__main__":
-	if len(sys.argv) < 2:
-		print("Usage: python3 solver2.py \"row1, row2, row3, ..., row9\"")
-		print("Example:")
-		print('  python3 solver2.py "5 3 0 0 7 0 0 0 0, 6 0 0 1 9 5 0 0 0, 0 9 8 0 0 0 0 6 0, 8 0 0 0 6 0 0 0 3, 4 0 0 8 0 3 0 0 1, 7 0 0 0 2 0 0 0 6, 0 6 0 0 0 0 2 8 0, 0 0 0 4 1 9 0 0 5, 0 0 0 0 8 0 0 7 9"')
-		sys.exit(1)
+    if len(sys.argv) < 2:
+        print("Usage: ./solver2.py <filename>")
+        print("Reads a sudoku board from a file and solves it.")
+        print()
+        print("The file should have 9 lines with 9 digits each (0 for empty cells).")
+        print()
+        print("Example:")
+        print("  ./solver2.py puzzle.txt")
+        print()
+        print("Where puzzle.txt contains:")
+        print("  530070000")
+        print("  600195000")
+        print("  098000060")
+        print("  800060003")
+        print("  400803001")
+        print("  700020006")
+        print("  060000280")
+        print("  000419005")
+        print("  000080079")
+        sys.exit(1)
 
-	board = parse_board(sys.argv[1])
+    filepath = sys.argv[1]
+    board = read_board_from_file(filepath)
 
-	if board is None:
-		sys.exit(1)
+    if board is None:
+        sys.exit(1)
 
-	print("Your board:")
-	print_board(board)
+    print("Your board:")
+    print_board(board)
 
-	# validate
-	errors = find_errors(board)
-	if len(errors) > 0:
-		print("\nBoard has errors:")
-		for error in errors:
-			print(f"  - {error}")
-		sys.exit(1)
+    # Validate the board
+    errors = is_valid_board(board)
+    if errors:
+        print("\nBoard has errors:")
+        for error in errors:
+            print(f"  - {error}")
+        sys.exit(1)
 
-	# solve
-	print("\nSolving...")
-	if solve(board):
-		print("Solved!\n")
-		print_board(board)
-	else:
-		print("No solution exists for this board.")
-
+    # Solve the board
+    print("\nSolving...")
+    if solve(board):
+        print("Solved!\n")
+        print_board(board)
+    else:
+        print("No solution exists for this board.")
