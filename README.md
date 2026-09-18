@@ -1,188 +1,258 @@
 # Sudoku Solver
 
-A simple Python program that validates and solves 9×9 Sudoku puzzles.
+A simple Python program that validates and solves 9×9 Sudoku puzzles using recursion and backtracking.
 
-The project provides two ways to solve a Sudoku:
+The project provides two ways to solve a Sudoku puzzle:
 
-* **Interactive Solver (`solver.py`)** — enter the puzzle row by row.
-* **Quick Solver (`solver2.py`)** — provide the entire puzzle from the command line.
+* **`solver.py`** — accepts the Sudoku puzzle directly through command-line arguments.
+* **`solver2.py`** — reads the Sudoku puzzle from a text file and uses the solving functions from `solver.py`.
 
-The solver uses **backtracking** to automatically find a solution.
+`0` represents an empty cell.
 
 ## Features
 
-* Accepts a 9×9 Sudoku puzzle.
-* Uses `0` to represent empty cells.
-* Validates rows, columns, and 3×3 blocks.
-* Detects duplicate numbers and reports their locations.
-* Allows users to edit incorrect rows in interactive mode.
+* Accepts standard 9×9 Sudoku puzzles.
+* Uses `0` for empty cells.
+* Validates rows, columns, and 3×3 boxes.
+* Detects duplicate numbers in the starting board.
 * Automatically tries numbers from `1` to `9`.
-* Uses recursion and backtracking to solve the puzzle.
-* Displays the Sudoku board in a readable format.
-* Reports when a puzzle has no solution.
+* Uses recursion and backtracking to find a solution.
+* Reports when the starting board is invalid.
+* Reports when a valid board has no possible solution.
+* Displays the solved Sudoku in a readable format.
+* Reuses solving logic between Python files.
 
-## Files
+## Project Structure
+
+```text
+sudoko_solver/
+│
+├── solver.py
+├── solver2.py
+├── puzzle.txt
+└── README.md
+```
 
 ### `solver.py`
 
-The main interactive Sudoku solver.
+`solver.py` contains the main Sudoku-solving logic.
 
 It:
 
-1. Collects the Sudoku puzzle from the user.
-2. Validates each row as it is entered.
-3. Displays the current board.
-4. Checks the completed board for errors.
-5. Allows the user to correct errors.
-6. Solves the puzzle using backtracking.
+1. Receives the nine Sudoku rows from the command line.
+2. Checks that exactly nine rows were provided.
+3. Checks that each row contains exactly nine digits.
+4. Converts the input into a list of lists of integers.
+5. Validates the starting Sudoku board.
+6. Solves the puzzle using recursion and backtracking.
 7. Prints the solved board.
 
 ### `solver2.py`
 
-A quick command-line version of the solver.
+`solver2.py` provides a file-based way to use the solver.
 
-It accepts the complete Sudoku puzzle as one argument, validates it, and then uses the solving functions from `solver.py`.
+It:
 
-## How It Works
+1. Receives the name of a puzzle file.
+2. Reads the nine rows from the file.
+3. Validates the file format.
+4. Displays the original board.
+5. Validates the Sudoku board.
+6. Uses the `solve()` function from `solver.py`.
+7. Prints the solved board.
 
-### 1. Validate the Board
+The file-based solver imports the main solving functions from `solver.py`, allowing both programs to use the same Sudoku logic.
 
-The program checks:
+### `puzzle.txt`
 
-* Rows
-* Columns
-* 3×3 blocks
-
-A valid Sudoku cannot contain the same number more than once in any of these areas.
-
-`0` represents an empty cell and is ignored during duplicate checking.
-
-### 2. Find an Empty Cell
-
-The solver searches the board for an empty cell containing `0`.
-
-### 3. Try Numbers 1–9
-
-The program automatically tries each number from `1` to `9`.
-
-The `can_place()` function checks whether the number can be placed in the selected cell without breaking the Sudoku rules.
-
-### 4. Backtracking
-
-When a number can be placed, the solver places it and continues solving.
-
-If that choice eventually leads to a dead end, the solver removes the number and tries another possibility.
-
-This process continues until the puzzle is solved or no possible solution remains.
-
-## Running the Interactive Solver
-
-Make sure Python 3 is installed.
-
-Run:
-
-```bash
-python3 solver.py
-```
-
-Then enter the nine rows when prompted.
-
-Each row should contain 9 numbers separated by spaces.
-
-Use `0` for empty cells.
+`puzzle.txt` stores a Sudoku puzzle that can be passed to `solver2.py`.
 
 Example:
 
 ```text
-5 3 0 0 7 0 0 0 0
+530070000
+600195000
+098000060
+800060003
+400803001
+700020006
+060000280
+000419005
+000080079
 ```
 
-## Running the Quick Solver
+Each line represents one row of the Sudoku board.
 
-The quick solver accepts all nine rows as one command-line argument, with each row separated by a comma.
+## How It Works
+
+### 1. Receive the Puzzle
+
+The program first receives the Sudoku board.
+
+For `solver.py`, the rows are provided through command-line arguments:
+
+```bash
+python3 solver.py 530070000 600195000 098000060 800060003 400803001 700020006 060000280 000419005 000080079
+```
+
+For `solver2.py`, the puzzle is stored in a file:
+
+```bash
+python3 solver2.py puzzle.txt
+```
+
+### 2. Validate the Board
+
+Before solving, the program checks the starting board.
+
+It checks:
+
+* Every row
+* Every column
+* Every 3×3 box
+
+A Sudoku board cannot contain the same non-zero number more than once in any row, column, or 3×3 box.
+
+`0` represents an empty cell and is ignored during duplicate checking.
+
+### 3. Find an Empty Cell
+
+The `find_empty()` function searches the board from top to bottom and left to right.
+
+When it finds a cell containing `0`, it returns its row and column.
+
+If there are no empty cells, the puzzle is complete.
+
+### 4. Try Numbers 1–9
+
+Once an empty cell is found, the solver automatically tries each number from `1` to `9`.
+
+For each number, it checks:
+
+* Is the number already in the row?
+* Is the number already in the column?
+* Is the number already in the 3×3 box?
+
+Only a number that passes all three checks is placed in the cell.
+
+### 5. Recursion and Backtracking
+
+After placing a valid number, `solve()` calls itself to solve the rest of the board.
+
+If the choice eventually leads to a situation where no number works, the program goes back to the previous choice.
+
+It removes the number and tries another possibility.
+
+This is called **backtracking**.
+
+```text
+Find an empty cell
+        ↓
+Try numbers 1–9
+        ↓
+Does the number fit?
+     ↙       ↘
+   No         Yes
+   ↓           ↓
+Try next    Place number
+number          ↓
+             Solve rest
+                ↓
+          Does it work?
+           ↙       ↘
+         No         Yes
+         ↓           ↓
+       Undo        Solved
+       choice
+         ↓
+    Try another
+      number
+```
+
+## Main Functions
+
+### `check_row(row, number)`
+
+Checks whether a number already exists in a particular row.
+
+### `check_col(board, column, number)`
+
+Checks whether a number already exists in a particular column.
+
+### `check_box(board, row, column, number)`
+
+Checks whether a number already exists in the 3×3 box containing the specified cell.
+
+### `is_valid_board(board)`
+
+Checks the entire starting board for duplicate numbers in rows, columns, and 3×3 boxes.
+
+It returns a list of error messages if problems are found.
+
+### `find_empty(board)`
+
+Finds the next empty cell containing `0`.
+
+It returns the row and column of the empty cell.
+
+If no empty cells remain, it returns `None`.
+
+### `solve(board)`
+
+The main solving function.
+
+It:
+
+1. Finds an empty cell.
+2. Tries numbers from `1` to `9`.
+3. Checks whether each number can be placed.
+4. Places a valid number.
+5. Recursively continues solving.
+6. Undoes the choice if it leads to a dead end.
+
+### `print_board(board)`
+
+Displays the Sudoku board in a readable 9×9 grid with 3×3 box separators.
+
+## Running the Solver
+
+### Using `solver.py`
 
 Run:
 
 ```bash
-python3 solver2.py "5 3 0 0 7 0 0 0 0, 6 0 0 1 9 5 0 0 0, 0 9 8 0 0 0 0 6 0, 8 0 0 0 6 0 0 0 3, 4 0 0 8 0 3 0 0 1, 7 0 0 0 2 0 0 0 6, 0 6 0 0 0 0 2 8 0, 0 0 0 4 1 9 0 0 5, 0 0 0 0 8 0 0 7 9"
+python3 solver.py 530070000 600195000 098000060 800060003 400803001 700020006 060000280 000419005 000080079
 ```
 
-The program will:
+The program validates and solves the puzzle, then prints the completed board.
 
-1. Parse the board.
-2. Check that there are 9 rows.
-3. Check that each row contains 9 numbers.
-4. Validate the Sudoku.
-5. Solve the puzzle.
-6. Print the solution.
+### Using `solver2.py`
 
-## Main Functions
+Place the Sudoku puzzle inside a text file such as `puzzle.txt`.
 
-### `row_correct()`
+Then run:
 
-Checks a row for duplicate numbers.
+```bash
+python3 solver2.py puzzle.txt
+```
 
-### `column_correct()`
+The program will display the original board, validate it, solve it, and display the solution.
 
-Checks a column for duplicate numbers.
-
-### `block_correct()`
-
-Checks a 3×3 block for duplicate numbers.
-
-### `find_errors()`
-
-Finds errors in the board and returns messages describing them.
-
-### `can_place()`
-
-Checks whether a number can safely be placed in a particular cell.
-
-### `find_empty()`
-
-Finds the next empty cell.
-
-### `solve()`
-
-Uses recursion and backtracking to solve the Sudoku puzzle.
-
-### `print_board()`
-
-Displays the Sudoku board in a readable grid.
-
-### `get_row_input()`
-
-Collects and validates a single row from the user.
-
-### `get_board_from_user()`
-
-Collects the complete Sudoku board and allows rows to be edited.
-
-## Backtracking
-
-The basic solving process is:
+## Example Puzzle
 
 ```text
-Find an empty cell
-       ↓
-Try a number from 1–9
-       ↓
-Is it valid?
-   ↓         ↓
-  Yes        No
-   ↓          ↓
-Place it   Try next number
-   ↓
-Solve the rest
-   ↓
-Does it work?
-   ↓         ↓
-  Yes        No
-   ↓          ↓
- Done      Undo the choice
-              ↓
-        Try another number
+530070000
+600195000
+098000060
+800060003
+400803001
+700020006
+060000280
+000419005
+000080079
 ```
+
+`0` represents an empty cell.
 
 ## Project Goal
 
@@ -190,9 +260,12 @@ The goal of this project is to build a simple Sudoku solver while practicing:
 
 * Python functions
 * Lists and nested lists
+* Command-line arguments
+* File handling
 * Input validation
 * Recursion
 * Backtracking
-* Command-line arguments
+* Problem-solving
 * Code reuse between Python files
-* Problem-solving and logical thinking
+
+The project is intentionally kept simple so that the solving process can be understood step by step rather than hidden behind complex libraries or advanced techniques.
